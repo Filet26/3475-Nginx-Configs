@@ -1,0 +1,67 @@
+---
+- hosts: all
+  become: true
+
+  tasks:
+    #- debug: var=ansible_all_ipv4_addresses
+    - debug: var=ansible_enp0s8.ipv4.address
+
+    - name: "Add nodejs apt key"
+      apt_key:
+        url: https://deb.nodesource.com/gpgkey/nodesource.gpg.key
+        state: present
+
+    - name: "Add nodejs 14.x ppa for apt repository"
+      apt_repository:
+        repo: deb https://deb.nodesource.com/node_14.x impish main
+        update_cache: yes
+
+    - name: "Install nodejs"
+      apt:
+        update_cache: yes
+        name: nodejs
+        state: present
+
+    # Node App
+    - name: Copy node app
+      copy:
+        src: ../node_app
+        dest: /opt/
+
+    - name: Copy node app unit file
+      copy:
+        src: ../nodeapp.service
+        dest: /etc/systemd/system/
+
+    - name: Install nodejs package
+      npm:
+        name: express
+        path: /opt/node_app
+
+    - name: Enable node application on startup
+      service: name=nodeapp
+        enabled=yes
+        state=restarted
+
+    # GHOST
+
+    - name: Install ghost-cli npm package
+      npm:
+        name: ghost-cli
+        global: true
+
+    - name: Extract ghost.tar.gz
+      unarchive:
+        src: ../ghost.tar.gz
+        dest: /opt/
+
+    - name: Copy ghost service file
+      copy:
+        src: ../ghost.service
+        dest: /etc/systemd/system/
+
+    - name: Disable ghost automatic startup
+      service: name=ghost
+        enabled=no
+        state=stopped
+        daemon_reload=yes
