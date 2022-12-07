@@ -1,0 +1,43 @@
+# updated by the nginx packaging team.
+#
+# This file will automatically load configuration files provided by other
+# applications, such as Drupal or Wordpress. These applications will be made
+# available underneath a path with that package name, such as /drupal8.
+#
+# Please see /usr/share/doc/nginx-doc/examples/ for more detailed examples.
+##
+
+# Default server configuration
+#
+
+server {
+        listen 8080;
+        listen [::]:8080;
+
+        root /www/site2;
+        index index.html index.htm;
+
+        location / {
+                autoindex on;
+                try_files $uri $uri/ =404;
+
+        }
+
+        location /image {
+                autoindex on;
+        }
+
+
+        location /restricted {
+
+                autoindex on;
+
+                satisfy any;
+                allow 127.0.0.1;
+
+                auth_basic "Admin Area";
+                auth_basic_user_file /etc/nginx/.htpasswd;
+
+        }
+
+}
